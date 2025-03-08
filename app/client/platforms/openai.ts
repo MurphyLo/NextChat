@@ -199,6 +199,7 @@ export class ChatGPTApi implements LLMApi {
     const isO1OrO3 =
       options.config.model.startsWith("o1") ||
       options.config.model.startsWith("o3");
+    const isO1_g = options.config.model.endsWith("github");
     if (isDalle3) {
       const prompt = getMessageTextContent(
         options.messages.slice(-1)?.pop() as any,
@@ -227,7 +228,7 @@ export class ChatGPTApi implements LLMApi {
       // O1 not support image, tools (plugin in ChatGPTNextWeb) and system, stream, logprobs, temperature, top_p, n, presence_penalty, frequency_penalty yet.
       requestPayload = {
         messages,
-        stream: options.config.stream,
+        stream: !isO1_g ? options.config.stream : false,
         model: modelConfig.model,
         temperature: !isO1OrO3 ? modelConfig.temperature : 1,
         presence_penalty: !isO1OrO3 ? modelConfig.presence_penalty : 0,
@@ -244,13 +245,15 @@ export class ChatGPTApi implements LLMApi {
 
       // add max_tokens to vision model
       if (visionModel) {
-        requestPayload["max_tokens"] = Math.max(modelConfig.max_tokens, 4000);
+        requestPayload["max_tokens"] = Math.max(modelConfig.max_tokens, 8000);
       }
     }
 
     console.log("[Request] openai payload: ", requestPayload);
 
-    const shouldStream = !isDalle3 && !!options.config.stream;
+    const shouldStream = !isDalle3 && !!options.config.stream && !isO1_g;
+    // shoudStream 用于决定客户端按照chat.completion还是chat.completion.chunk来解析响应。
+    // 用于对github的o1.stream不兼容性进行定制
     const controller = new AbortController();
     options.onController?.(controller);
 

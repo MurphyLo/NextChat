@@ -20,14 +20,10 @@ import SpeakIcon from "../icons/speak.svg";
 import SpeakStopIcon from "../icons/speak-stop.svg";
 import LoadingIcon from "../icons/three-dots.svg";
 import LoadingButtonIcon from "../icons/loading.svg";
-import PromptIcon from "../icons/prompt.svg";
-import MaskIcon from "../icons/mask.svg";
 import MaxIcon from "../icons/max.svg";
 import MinIcon from "../icons/min.svg";
 import ResetIcon from "../icons/reload.svg";
 import ReloadIcon from "../icons/reload.svg";
-import BreakIcon from "../icons/break.svg";
-import SettingsIcon from "../icons/chat-settings.svg";
 import DeleteIcon from "../icons/clear.svg";
 import PinIcon from "../icons/pin.svg";
 import ConfirmIcon from "../icons/confirm.svg";
@@ -44,7 +40,6 @@ import RobotIcon from "../icons/robot.svg";
 import SizeIcon from "../icons/size.svg";
 import QualityIcon from "../icons/hd.svg";
 import StyleIcon from "../icons/palette.svg";
-import PluginIcon from "../icons/plugin.svg";
 import ShortcutkeyIcon from "../icons/shortcutkey.svg";
 import McpToolIcon from "../icons/tool.svg";
 import HeadphoneIcon from "../icons/headphone.svg";
@@ -74,7 +69,6 @@ import {
   supportsCustomSize,
   useMobileScreen,
   selectOrCopy,
-  showPlugins,
 } from "../utils";
 
 import { uploadImage as uploadImageRemote } from "@/app/utils/chat";
@@ -613,6 +607,7 @@ export function ChatActions(props: {
             icon={<BottomIcon />}
           />
         )}
+        {/*
         {props.hitBottom && (
           <ChatAction
             onClick={props.showPromptModal}
@@ -620,6 +615,7 @@ export function ChatActions(props: {
             icon={<SettingsIcon />}
           />
         )}
+       */}
 
         {showUploadImage && (
           <ChatAction
@@ -644,6 +640,7 @@ export function ChatActions(props: {
           }
         />
 
+        {/*
         <ChatAction
           onClick={props.showPromptHints}
           text={Locale.Chat.InputActions.Prompt}
@@ -672,6 +669,7 @@ export function ChatActions(props: {
             });
           }}
         />
+       */}
 
         <ChatAction
           onClick={() => setShowModelSelector(true)}
@@ -795,6 +793,7 @@ export function ChatActions(props: {
           />
         )}
 
+        {/*
         {showPlugins(currentProviderName, currentModel) && (
           <ChatAction
             onClick={() => {
@@ -824,6 +823,7 @@ export function ChatActions(props: {
             }}
           />
         )}
+       */}
 
         {!isMobileScreen && (
           <ChatAction
@@ -851,6 +851,17 @@ export function EditMessageModal(props: { onClose: () => void }) {
   const chatStore = useChatStore();
   const session = chatStore.currentSession();
   const [messages, setMessages] = useState(session.messages.slice());
+
+  // 在 EditMessageModal 组件中
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // 当 Modal 一渲染，就自动 focus 并且 select
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select(); // 选中全部文本，便于一键改名
+    }
+  }, []);
 
   return (
     <div className="modal-mask">
@@ -887,6 +898,7 @@ export function EditMessageModal(props: { onClose: () => void }) {
             subTitle={Locale.Chat.EditMessage.Topic.SubTitle}
           >
             <input
+              ref={inputRef}
               type="text"
               value={session.topic}
               onInput={(e) =>
@@ -895,6 +907,16 @@ export function EditMessageModal(props: { onClose: () => void }) {
                   (session) => (session.topic = e.currentTarget.value),
                 )
               }
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  chatStore.updateTargetSession(
+                    session,
+                    (session) => (session.messages = messages),
+                  );
+                  props.onClose();
+                }
+              }}
             ></input>
           </ListItem>
         </List>
@@ -940,10 +962,36 @@ export function ShortcutKeyModal(props: { onClose: () => void }) {
       keys: isMac ? ["⌘", "/"] : ["Ctrl", "/"],
     },
     {
+      title: "切换聊天",
+      keys: isMac ? ["⌘", "Up/Down"] : ["Alt", "Up/Down"],
+    },
+    {
+      title: "删除当前聊天",
+      keys: isMac
+        ? ["⌘", "Shift", "Backspace"]
+        : ["Ctrl", "Shift", "Backspace"],
+    },
+    {
+      title: "编辑聊天主题",
+      keys: isMac ? ["⌘", "Shift", "E"] : ["Ctrl", "Shift", "E"],
+    },
+    {
+      title: "编辑最后一条用户消息",
+      keys: isMac ? ["⌘", "E"] : ["Ctrl", "E"],
+    },
+    {
+      title: "重新生成最后一条消息",
+      keys: isMac ? ["⌘", "Shift", "R"] : ["Ctrl", "Shift", "R"],
+    },
+    {
+      /*
+    {
       title: Locale.Chat.ShortcutKey.clearContext,
       keys: isMac
         ? ["⌘", "Shift", "backspace"]
         : ["Ctrl", "Shift", "backspace"],
+    },
+   */
     },
   ];
   return (
@@ -971,7 +1019,7 @@ export function ShortcutKeyModal(props: { onClose: () => void }) {
                   {shortcut.title}
                 </div>
                 <div className={styles["shortcut-key-keys"]}>
-                  {shortcut.keys.map((key, i) => (
+                  {shortcut.keys?.map((key, i) => (
                     <div key={i} className={styles["shortcut-key"]}>
                       <span>{key}</span>
                     </div>
@@ -1047,13 +1095,13 @@ function _Chat() {
   );
 
   // auto grow input
-  const [inputRows, setInputRows] = useState(2);
+  const [inputRows, setInputRows] = useState(3);
   const measure = useDebouncedCallback(
     () => {
       const rows = inputRef.current ? autoGrowTextArea(inputRef.current) : 1;
       const inputRows = Math.min(
         20,
-        Math.max(2 + Number(!isMobileScreen), rows),
+        Math.max(3 + Number(!isMobileScreen), rows),
       );
       setInputRows(inputRows);
     },
@@ -1340,7 +1388,15 @@ function _Chat() {
   ) {
     const copiedHello = Object.assign({}, BOT_HELLO);
     if (!accessStore.isAuthorized()) {
-      copiedHello.content = Locale.Error.Unauthorized;
+      //copiedHello.content = Locale.Error.Unauthorized;
+      const currentHostname = window.location.hostname; // 获取当前域名
+      console.log("currentHostname is", currentHostname);
+      if (currentHostname.startsWith("chat")) {
+        copiedHello.content = Locale.Error.Unauthorized;
+      } else {
+        copiedHello.content =
+          "如果你从 [登录页](https://ai.smartmonk.biz) 跳转至本页面并看到本提示，请刷新页面后即可开始对话。否则请重新从 [登录页](https://ai.smartmonk.biz) 跳转访问本页面。";
+      }
     }
     context.push(copiedHello);
   }
@@ -1449,11 +1505,12 @@ function _Chat() {
     code: (text) => {
       if (accessStore.disableFastLink) return;
       console.log("[Command] got code from url: ", text);
-      showConfirm(Locale.URLCommand.Code + `code = ${text}`).then((res) => {
-        if (res) {
-          accessStore.update((access) => (access.accessCode = text));
-        }
-      });
+      //showConfirm(Locale.URLCommand.Code + `code = ${text}`).then((res) => {
+      //  if (res) {
+      //    accessStore.update((access) => (access.accessCode = text));
+      //  }
+      //});
+      accessStore.update((access) => (access.accessCode = text));
     },
     settings: (text) => {
       if (accessStore.disableFastLink) return;
@@ -1465,23 +1522,15 @@ function _Chat() {
         };
 
         console.log("[Command] got settings from url: ", payload);
-
+        // 直接应用设置（跳过确认框逻辑）
+        if (payload.key) {
+          accessStore.update((access) => (access.openaiApiKey = payload.key!));
+        }
+        if (payload.url) {
+          accessStore.update((access) => (access.openaiUrl = payload.url!));
+        }
         if (payload.key || payload.url) {
-          showConfirm(
-            Locale.URLCommand.Settings +
-              `\n${JSON.stringify(payload, null, 4)}`,
-          ).then((res) => {
-            if (!res) return;
-            if (payload.key) {
-              accessStore.update(
-                (access) => (access.openaiApiKey = payload.key!),
-              );
-            }
-            if (payload.url) {
-              accessStore.update((access) => (access.openaiUrl = payload.url!));
-            }
-            accessStore.update((access) => (access.useCustomConfig = true));
-          });
+          accessStore.update((access) => (access.useCustomConfig = true));
         }
       } catch {
         console.error("[Command] failed to get settings from url: ", text);
@@ -1614,6 +1663,22 @@ function _Chat() {
           navigate(Path.Chat);
         }, 10);
       }
+
+      // 重试最后一条消息 Ctrl + R
+      else if (
+        (event.metaKey || event.ctrlKey) &&
+        event.shiftKey &&
+        event.key.toLowerCase() === "r"
+        //event.key.toLowerCase() === "r"
+      ) {
+        event.preventDefault();
+        // 找到最后一条消息
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage) {
+          onResend(lastMessage);
+        }
+      }
+
       // 聚焦聊天输入 shift + esc
       else if (event.shiftKey && event.key.toLowerCase() === "escape") {
         event.preventDefault();
@@ -1647,11 +1712,82 @@ function _Chat() {
           copyToClipboard(lastMessageContent);
         }
       }
+
+      // 打开编辑消息模态框的逻辑
+      else if (
+        (event.metaKey || event.ctrlKey) &&
+        event.shiftKey &&
+        event.key.toLowerCase() === "e"
+      ) {
+        event.preventDefault();
+        setIsEditingMessage(true);
+      }
+
+      // 当按下 ctrl + e（windows）或 command + e（mac）时
+      else if (
+        (event.metaKey || event.ctrlKey) &&
+        event.key.toLowerCase() === "e"
+      ) {
+        event.preventDefault();
+
+        // 1. 根据是否同时按下 Alt 键，来决定编辑 user 消息还是 assistant 消息
+        //    如果按下了 Alt 键，就编辑最后一条 assistant 消息；否则编辑最后一条 user 消息
+        const targetRole = event.altKey ? "assistant" : "user";
+
+        // 2. 找到最后一条指定 role 的消息
+        const lastMessage = messages.filter((m) => m.role === targetRole).pop();
+
+        if (!lastMessage) {
+          return;
+        }
+
+        // 3. 弹出模态框 showPrompt，进行内容编辑
+        (async () => {
+          const oldContent = getMessageTextContent(lastMessage);
+          const images = getMessageImages(lastMessage);
+
+          // 弹出对话框，等待用户输入
+          const newMessage = await showPrompt(
+            Locale.Chat.Actions.Edit, // 弹窗标题
+            oldContent, // 弹窗内文本框默认值
+            10, // 文本框行数
+          );
+
+          // 4. 如果存在图像，则合并到新内容里；assistant 消息一般没图像，可统一逻辑
+          let newContent: string | MultimodalContent[] = newMessage;
+          if (images.length > 0) {
+            newContent = [{ type: "text", text: newMessage }];
+            for (let i = 0; i < images.length; i++) {
+              newContent.push({
+                type: "image_url",
+                image_url: {
+                  url: images[i],
+                },
+              });
+            }
+          }
+
+          // 5. 更新到 chatStore
+          //    注意要在 session.mask.context.concat(session.messages) 里找到对应的那条消息
+          chatStore.updateTargetSession(session, (session) => {
+            const target = session.mask.context
+              .concat(session.messages)
+              .find((m) => m.id === lastMessage.id);
+
+            if (target) {
+              target.content = newContent;
+            }
+          });
+        })();
+      }
+
       // 展示快捷键 command + /
       else if ((event.metaKey || event.ctrlKey) && event.key === "/") {
         event.preventDefault();
         setShowShortcutKeyModal(true);
       }
+      {
+        /*
       // 清除上下文 command + shift + backspace
       else if (
         (event.metaKey || event.ctrlKey) &&
@@ -1667,6 +1803,8 @@ function _Chat() {
             session.memoryPrompt = ""; // will clear memory
           }
         });
+      }
+     */
       }
     };
 
@@ -2083,8 +2221,8 @@ function _Chat() {
                   onInput={(e) => onInput(e.currentTarget.value)}
                   value={userInput}
                   onKeyDown={onInputKeyDown}
-                  onFocus={scrollToBottom}
-                  onClick={scrollToBottom}
+                  //onFocus={scrollToBottom}
+                  //onClick={scrollToBottom}
                   onPaste={handlePaste}
                   rows={inputRows}
                   autoFocus={autoFocus}

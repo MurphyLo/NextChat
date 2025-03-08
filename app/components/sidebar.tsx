@@ -4,7 +4,6 @@ import styles from "./home.module.scss";
 
 import { IconButton } from "./button";
 import SettingsIcon from "../icons/settings.svg";
-import GithubIcon from "../icons/github.svg";
 import ChatGptIcon from "../icons/chatgpt.svg";
 import AddIcon from "../icons/add.svg";
 import DeleteIcon from "../icons/delete.svg";
@@ -23,7 +22,6 @@ import {
   MIN_SIDEBAR_WIDTH,
   NARROW_SIDEBAR_WIDTH,
   Path,
-  REPO_URL,
 } from "../constant";
 
 import { Link, useNavigate } from "react-router-dom";
@@ -34,8 +32,8 @@ import clsx from "clsx";
 import { isMcpEnabled } from "../mcp/actions";
 
 const DISCOVERY = [
-  { name: Locale.Plugin.Name, path: Path.Plugins },
-  { name: "Stable Diffusion", path: Path.Sd },
+  //{ name: Locale.Plugin.Name, path: Path.Plugins },
+  //{ name: "Stable Diffusion", path: Path.Sd },
   { name: Locale.SearchChat.Page.Title, path: Path.SearchChat },
 ];
 
@@ -47,7 +45,17 @@ export function useHotKey() {
   const chatStore = useChatStore();
 
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
+    //const onKeyDown = (e: KeyboardEvent) => {
+    async function handleKeyDown(e: KeyboardEvent) {
+      // 1. Ctrl + Shift + Backspace => 删除当前对话
+      if (e.ctrlKey && e.shiftKey && e.key === "Backspace") {
+        e.preventDefault(); // 避免触发浏览器返回上一页
+        // 可根据需要是否确认删除
+        if (await showConfirm(Locale.Home.DeleteChat)) {
+          chatStore.deleteSession(chatStore.currentSessionIndex);
+        }
+      }
+
       if (e.altKey || e.ctrlKey) {
         if (e.key === "ArrowUp") {
           chatStore.nextSession(-1);
@@ -55,10 +63,12 @@ export function useHotKey() {
           chatStore.nextSession(1);
         }
       }
-    };
+    }
 
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    //window.addEventListener("keydown", onKeyDown);
+    //return () => window.removeEventListener("keydown", onKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   });
 }
 
@@ -282,9 +292,13 @@ export function SideBar(props: { className?: string }) {
           )}
           <IconButton
             icon={<DiscoveryIcon />}
-            text={shouldNarrow ? undefined : Locale.Discovery.Name}
+            //text={shouldNarrow ? undefined : Locale.Discovery.Name}
+            text={"搜索"}
             className={styles["sidebar-bar-button"]}
-            onClick={() => setshowDiscoverySelector(true)}
+            //onClick={() => setshowDiscoverySelector(true)}
+            onClick={() =>
+              navigate(Path.SearchChat, { state: { fromHome: true } })
+            }
             shadow
           />
         </div>
@@ -336,6 +350,7 @@ export function SideBar(props: { className?: string }) {
                 />
               </Link>
             </div>
+            {/*
             <div className={styles["sidebar-action"]}>
               <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
                 <IconButton
@@ -345,6 +360,7 @@ export function SideBar(props: { className?: string }) {
                 />
               </a>
             </div>
+	   */}
           </>
         }
         secondaryAction={

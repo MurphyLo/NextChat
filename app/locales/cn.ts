@@ -11,11 +11,16 @@ const cn = {
       ? `😆 对话遇到了一些问题，不用慌:
        \\ 1️⃣ 想要零配置开箱即用，[点击这里立刻开启对话 🚀](${SAAS_CHAT_UTM_URL})
        \\ 2️⃣ 如果你想消耗自己的 OpenAI 资源，点击[这里](/#/settings)修改设置 ⚙️`
+      : /*
       : `😆 对话遇到了一些问题，不用慌:
        \ 1️⃣ 想要零配置开箱即用，[点击这里立刻开启对话 🚀](${SAAS_CHAT_UTM_URL})
        \ 2️⃣ 如果你正在使用私有部署版本，点击[这里](/#/auth)输入访问秘钥 🔑
        \ 3️⃣ 如果你想消耗自己的 OpenAI 资源，点击[这里](/#/settings)修改设置 ⚙️
        `,
+      */
+        `未自动配置密钥key:
+       \ 首次使用请访问 [登录地址](https://login.bnuswzl.com) 认证 BNU 校园邮箱，跳转到本网站后将自动配置密钥key
+        `,
   },
   Auth: {
     Return: "返回",
@@ -621,7 +626,9 @@ const cn = {
   },
   Store: {
     DefaultTopic: "新的聊天",
-    BotHello: "有什么可以帮你的吗",
+    //BotHello: "有什么可以帮你的吗",
+    BotHello:
+      "点击文本输入框上方的机器人图标更换模型。\n\n> 默认使用 Gemini 2 Pro，其它支持模型包括 o1, o3-mini, DeepSeek-R1, GPT 4.5 等。",
     Error: "出错了，稍后重试吧",
     Prompt: {
       History: (content: string) => "这是历史聊天总结作为前情提要：" + content,

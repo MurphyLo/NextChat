@@ -376,12 +376,16 @@ function PromptInput(props: {
   value: string;
   onChange: (value: string) => void;
   rows?: number;
+  onConfirm?: () => void; // 让父级可以传入“提交”回调
 }) {
   const [input, setInput] = useState(props.value);
   const onInput = (value: string) => {
     props.onChange(value);
     setInput(value);
   };
+
+  // 判断当前是否在 Mac 平台
+  const isMac = /Mac/i.test(navigator.platform);
 
   return (
     <textarea
@@ -390,6 +394,17 @@ function PromptInput(props: {
       value={input}
       onInput={(e) => onInput(e.currentTarget.value)}
       rows={props.rows ?? 3}
+      // onKeyDown回调实现存储消息快捷键
+      onKeyDown={(e) => {
+        // 若想在 Mac 上用 Command + Enter，Windows/Linux 上用 Ctrl + Enter，可做如下判断：
+        if (
+          e.key === "Enter" &&
+          ((isMac && e.metaKey) || (!isMac && e.ctrlKey))
+        ) {
+          e.preventDefault(); // 防止默认换行
+          props.onConfirm?.(); // 调用父组件传进来的提交逻辑
+        }
+      }}
     ></textarea>
   );
 }
@@ -407,6 +422,12 @@ export function showPrompt(content: any, value = "", rows = 3) {
 
   return new Promise<string>((resolve) => {
     let userInput = value;
+
+    // 将“确认”逻辑封装成一个函数，方便给按钮和onConfirm共用
+    function doConfirm() {
+      resolve(userInput);
+      closeModal();
+    }
 
     root.render(
       <Modal
@@ -443,6 +464,8 @@ export function showPrompt(content: any, value = "", rows = 3) {
           onChange={(val) => (userInput = val)}
           value={value}
           rows={rows}
+          // 把原先“点击确认按钮”时用到的逻辑，也传给 <PromptInput> 作为一个 onConfirm 回调
+          onConfirm={doConfirm}
         ></PromptInput>
       </Modal>,
     );

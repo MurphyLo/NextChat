@@ -69,6 +69,7 @@ export function ModelConfigList(props: {
           }}
         ></InputRange>
       </ListItem>
+      {/*
       <ListItem
         title={Locale.Settings.TopP.Title}
         subTitle={Locale.Settings.TopP.SubTitle}
@@ -191,6 +192,7 @@ export function ModelConfigList(props: {
           </ListItem>
         </>
       )}
+     */}
       <ListItem
         title={Locale.Settings.HistoryCount.Title}
         subTitle={Locale.Settings.HistoryCount.SubTitle}
@@ -210,6 +212,7 @@ export function ModelConfigList(props: {
         ></InputRange>
       </ListItem>
 
+      {/*
       <ListItem
         title={Locale.Settings.CompressThreshold.Title}
         subTitle={Locale.Settings.CompressThreshold.SubTitle}
@@ -241,6 +244,7 @@ export function ModelConfigList(props: {
           }
         ></input>
       </ListItem>
+     */}
       <ListItem
         title={Locale.Settings.CompressModel.Title}
         subTitle={Locale.Settings.CompressModel.SubTitle}

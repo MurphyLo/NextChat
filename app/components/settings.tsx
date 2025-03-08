@@ -37,20 +37,13 @@ import { IconButton } from "./button";
 import {
   SubmitKey,
   useChatStore,
-  Theme,
   useUpdateStore,
   useAccessStore,
   useAppConfig,
 } from "../store";
 
-import Locale, {
-  AllLangs,
-  ALL_LANG_OPTIONS,
-  changeLang,
-  getLang,
-} from "../locales";
-import { copyToClipboard, clientUpdate, semverCompare } from "../utils";
-import Link from "next/link";
+import Locale from "../locales";
+import { copyToClipboard, semverCompare } from "../utils";
 import {
   Anthropic,
   Azure,
@@ -87,7 +80,6 @@ import { nanoid } from "nanoid";
 import { useMaskStore } from "../store/mask";
 import { ProviderType } from "../utils/cloud";
 import { TTSConfigList } from "./tts-config";
-import { RealtimeConfigList } from "./realtime-chat/realtime-config";
 
 function EditPromptModal(props: { id: string; onClose: () => void }) {
   const promptStore = usePromptStore();
@@ -1510,6 +1502,7 @@ export function Settings() {
             </Popover>
           </ListItem>
 
+          {/*
           <ListItem
             title={Locale.Settings.Update.Version(currentVersion ?? "unknown")}
             subTitle={
@@ -1542,6 +1535,7 @@ export function Settings() {
               />
             )}
           </ListItem>
+	 */}
 
           <ListItem title={Locale.Settings.SendKey}>
             <Select
@@ -1562,6 +1556,7 @@ export function Settings() {
             </Select>
           </ListItem>
 
+          {/*
           <ListItem title={Locale.Settings.Theme}>
             <Select
               aria-label={Locale.Settings.Theme}
@@ -1595,6 +1590,7 @@ export function Settings() {
               ))}
             </Select>
           </ListItem>
+	 */}
 
           <ListItem
             title={Locale.Settings.FontSize.Title}
@@ -1616,6 +1612,7 @@ export function Settings() {
             ></InputRange>
           </ListItem>
 
+          {/*
           <ListItem
             title={Locale.Settings.FontFamily.Title}
             subTitle={Locale.Settings.FontFamily.SubTitle}
@@ -1632,6 +1629,7 @@ export function Settings() {
               }
             ></input>
           </ListItem>
+	 */}
 
           <ListItem
             title={Locale.Settings.AutoGenerateTitle.Title}
@@ -1775,7 +1773,7 @@ export function Settings() {
         </List>
 
         <List id={SlotID.CustomModel}>
-          {saasStartComponent}
+          {/*{saasStartComponent}*/}
           {accessCodeComponent}
 
           {!accessStore.hideUserApiKey && (
@@ -1887,6 +1885,7 @@ export function Settings() {
         {shouldShowPromptModal && (
           <UserPromptModal onClose={() => setShowPromptModal(false)} />
         )}
+        {/*
         <List>
           <RealtimeConfigList
             realtimeConfig={config.realtimeConfig}
@@ -1899,6 +1898,7 @@ export function Settings() {
             }}
           />
         </List>
+       */}
         <List>
           <TTSConfigList
             ttsConfig={config.ttsConfig}

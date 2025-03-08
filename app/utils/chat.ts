@@ -345,7 +345,16 @@ export function stream(
           } catch {}
 
           if (res.status === 401) {
-            responseTexts.push(Locale.Error.Unauthorized);
+            //responseTexts.push(Locale.Error.Unauthorized);
+            const currentHostname = window.location.hostname; // 获取当前域名
+            console.log("currentHostname is", currentHostname);
+            if (currentHostname.startsWith("chat")) {
+              responseTexts.push(Locale.Error.Unauthorized);
+            } else {
+              responseTexts.push(
+                "如果你从 [登录页](https://ai.smartmonk.biz) 跳转至本页面并看到本提示，请刷新页面后即可开始对话。否则请重新从 [登录页](https://ai.smartmonk.biz) 跳转访问本页面。",
+              );
+            }
           }
 
           if (extraInfo) {

@@ -77,9 +77,11 @@ export const ALL_LANG_OPTIONS: Record<Lang, string> = {
 };
 
 const LANG_KEY = "lang";
-const DEFAULT_LANG = "en";
+//const DEFAULT_LANG = "en";
+const DEFAULT_LANG = "cn";
 
-const fallbackLang = en;
+//const fallbackLang = en;
+const fallbackLang = cn;
 const targetLang = ALL_LANGS[getLang()] as LocaleType;
 
 // if target lang missing some fields, it will use fallback lang string
@@ -114,6 +116,7 @@ function getLanguage() {
 }
 
 export function getLang(): Lang {
+  /*
   const savedLang = getItem(LANG_KEY);
 
   if (AllLangs.includes((savedLang ?? "") as Lang)) {
@@ -121,6 +124,8 @@ export function getLang(): Lang {
   }
 
   return getLanguage();
+ */
+  return "cn";
 }
 
 export function changeLang(lang: Lang) {

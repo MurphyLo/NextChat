@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSideConfig } from "../config/server";
-import { OPENAI_BASE_URL, ServiceProvider } from "../constant";
+import { OPENAI_BASE_URL } from "../constant";
 import { cloudflareAIGatewayUrl } from "../utils/cloudflare";
-import { getModelProvider, isModelNotavailableInServer } from "../utils/model";
+import { getModelProvider } from "../utils/model";
 
 const serverConfig = getServerSideConfig();
 
@@ -116,6 +116,7 @@ export async function requestOpenai(req: NextRequest) {
 
       const jsonBody = JSON.parse(clonedBody) as { model?: string };
 
+      /*
       // not undefined and is false
       if (
         isModelNotavailableInServer(
@@ -138,6 +139,7 @@ export async function requestOpenai(req: NextRequest) {
           },
         );
       }
+      */
     } catch (e) {
       console.error("[OpenAI] gpt4 filter", e);
     }

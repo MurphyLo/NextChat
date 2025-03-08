@@ -117,8 +117,8 @@ export const EXPORT_MESSAGE_CLASS_NAME = "export-markdown";
 export enum ServiceProvider {
   OpenAI = "OpenAI",
   Azure = "Azure",
-  Google = "Google",
-  Anthropic = "Anthropic",
+  Google = "Google_invalidated",
+  Anthropic = "Anthropic_invalidated",
   Baidu = "Baidu",
   ByteDance = "ByteDance",
   Alibaba = "Alibaba",
@@ -128,7 +128,7 @@ export enum ServiceProvider {
   Iflytek = "Iflytek",
   XAI = "XAI",
   ChatGLM = "ChatGLM",
-  DeepSeek = "DeepSeek",
+  DeepSeek = "DeepSeek_invalidated",
   SiliconFlow = "SiliconFlow",
 }
 
@@ -469,6 +469,11 @@ export const VISION_MODEL_REGEXES = [
   /^dall-e-3$/, // Matches exactly "dall-e-3"
   /glm-4v/,
   /vl/i,
+  /^o1-2024-12-17$/,
+  /^o1-chat2api$/,
+  /^o1-github$/,
+  /^gpt-4.5/,
+  /^grok-3/,
 ];
 
 export const EXCLUDE_VISION_MODEL_REGEXES = [/claude-3-5-haiku-20241022/];
