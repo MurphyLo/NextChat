@@ -119,6 +119,7 @@ import { getModelProvider } from "../utils/model";
 import { RealtimeChat } from "@/app/components/realtime-chat";
 import clsx from "clsx";
 import { getAvailableClientsCount, isMcpEnabled } from "../mcp/actions";
+import { getRecentAvailableModels } from "../utils/model";
 
 const localStorage = safeLocalStorage();
 
@@ -524,6 +525,10 @@ export function ChatActions(props: {
   const currentProviderName =
     session.mask.modelConfig?.providerName || ServiceProvider.OpenAI;
   const allModels = useAllModels();
+  const availableModels = allModels
+    .filter((m) => m.available)
+    .map((m) => m.name);
+  const [currentModelIndex, setCurrentModelIndex] = useState(0);
   const models = useMemo(() => {
     const filteredModels = allModels.filter((m) => m.available);
     const defaultModel = filteredModels.find((m) => m.isDefault);
@@ -589,6 +594,34 @@ export function ChatActions(props: {
       );
     }
   }, [chatStore, currentModel, models, session]);
+
+  // 添加快捷键监听
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === "M") {
+        e.preventDefault();
+        const recentModels = getRecentAvailableModels(
+          chatStore.sessions,
+          availableModels,
+        );
+        if (recentModels.length > 0) {
+          const nextIndex = (currentModelIndex + 1) % recentModels.length;
+          setCurrentModelIndex(nextIndex);
+
+          // 更新当前会话的模型配置
+          chatStore.updateTargetSession(session, (session) => {
+            session.mask.modelConfig.model = recentModels[nextIndex].model;
+          });
+
+          // 显示提示
+          showToast(recentModels[nextIndex].model);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentModelIndex, availableModels, session]);
 
   return (
     <div className={styles["chat-input-actions"]}>
@@ -982,6 +1015,10 @@ export function ShortcutKeyModal(props: { onClose: () => void }) {
     {
       title: "重新生成最后一条消息",
       keys: isMac ? ["⌘", "Shift", "R"] : ["Ctrl", "Shift", "R"],
+    },
+    {
+      title: "在最近3个模型之间切换",
+      keys: isMac ? ["⌘", "Shift", "M"] : ["Ctrl", "Shift", "M"],
     },
     {
       /*

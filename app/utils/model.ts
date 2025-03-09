@@ -1,5 +1,6 @@
 import { DEFAULT_MODELS, ServiceProvider } from "../constant";
 import { LLMModel } from "../client/api";
+import { ChatSession } from "../store/chat";
 
 const CustomSeq = {
   val: -1000, //To ensure the custom model located at front, start from -1000, refer to constant.ts
@@ -255,4 +256,35 @@ export function isModelNotavailableInServer(
     if (modelTable?.[fullName]?.available === true) return false;
   }
   return true;
+}
+
+export function getRecentAvailableModels(
+  sessions: ChatSession[],
+  availableModels: string[],
+  maxModels: number = 3,
+): { model: string; lastUsed: number }[] {
+  const modelUsageMap = new Map<string, number>();
+
+  // 遍历所有会话
+  for (const session of sessions) {
+    // 遍历会话中的所有消息
+    for (const message of session.messages) {
+      if (message.model && availableModels.includes(message.model)) {
+        const lastUsed = new Date(message.date).getTime();
+        const currentLastUsed = modelUsageMap.get(message.model) || 0;
+        // 只保留最近使用时间
+        if (lastUsed > currentLastUsed) {
+          modelUsageMap.set(message.model, lastUsed);
+        }
+      }
+    }
+  }
+
+  // 将Map转换为数组并排序
+  const sortedModels = Array.from(modelUsageMap.entries())
+    .map(([model, lastUsed]) => ({ model, lastUsed }))
+    .sort((a, b) => b.lastUsed - a.lastUsed)
+    .slice(0, maxModels);
+
+  return sortedModels;
 }
