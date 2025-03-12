@@ -348,12 +348,12 @@ export function stream(
             //responseTexts.push(Locale.Error.Unauthorized);
             const currentHostname = window.location.hostname; // 获取当前域名
             console.log("currentHostname is", currentHostname);
-            if (currentHostname.startsWith("chat")) {
-              responseTexts.push(Locale.Error.Unauthorized);
-            } else {
+            if (currentHostname.startsWith("free")) {
               responseTexts.push(
                 "如果你从 [登录页](https://ai.smartmonk.biz) 跳转至本页面并看到本提示，请刷新页面后即可开始对话。否则请重新从 [登录页](https://ai.smartmonk.biz) 跳转访问本页面。",
               );
+            } else {
+              responseTexts.push(Locale.Error.Unauthorized);
             }
           }
 
@@ -580,7 +580,16 @@ export function streamWithThink(
           } catch {}
 
           if (res.status === 401) {
-            responseTexts.push(Locale.Error.Unauthorized);
+            const currentHostname = window.location.hostname; // 获取当前域名
+            console.log("currentHostname is", currentHostname);
+            if (currentHostname.startsWith("free")) {
+              responseTexts.push(
+                "如果你从 [登录页](https://ai.smartmonk.biz) 跳转至本页面并看到本提示，请刷新页面后即可开始对话。否则请重新从 [登录页](https://ai.smartmonk.biz) 跳转访问本页面。",
+              );
+            } else {
+              responseTexts.push(Locale.Error.Unauthorized);
+            }
+            //responseTexts.push(Locale.Error.Unauthorized);
           }
 
           if (extraInfo) {
@@ -608,21 +617,29 @@ export function streamWithThink(
             return;
           }
 
+          let tempAfterPart = "";
           // deal with <think> and </think> tags start
-          if (!chunk.isThinking) {
-            if (chunk.content.startsWith("<think>")) {
-              chunk.isThinking = true;
-              chunk.content = chunk.content.slice(7).trim();
-              lastIsThinkingTagged = true;
-            } else if (chunk.content.endsWith("</think>")) {
-              chunk.isThinking = false;
-              chunk.content = chunk.content.slice(0, -8).trim();
-              lastIsThinkingTagged = false;
-            } else if (lastIsThinkingTagged) {
-              chunk.isThinking = true;
+          if (chunk.content.includes("</think>")) {
+            const closingIndex = chunk.content.indexOf("</think>");
+            let thinkingPart = chunk.content.substring(0, closingIndex).trim();
+            tempAfterPart = chunk.content.substring(closingIndex + 8).trim();
+            if (thinkingPart.startsWith("<think>")) {
+              thinkingPart = thinkingPart.slice(7).trim();
+            }
+            chunk.isThinking = true; // 本块为思考内容
+            chunk.content = thinkingPart; // 只保留思考部分，不包含结束标签
+            lastIsThinkingTagged = false; // 已结束标记
+          } else {
+            if (!chunk.isThinking) {
+              if (chunk.content.startsWith("<think>")) {
+                chunk.isThinking = true;
+                chunk.content = chunk.content.slice(7).trim();
+                lastIsThinkingTagged = true;
+              } else if (lastIsThinkingTagged) {
+                chunk.isThinking = true;
+              }
             }
           }
-          // deal with <think> and </think> tags start
 
           // Check if thinking mode changed
           const isThinkingChanged = lastIsThinking !== chunk.isThinking;
@@ -630,21 +647,31 @@ export function streamWithThink(
 
           if (chunk.isThinking) {
             // If in thinking mode
+            const lines = chunk.content.split("\n");
             if (!isInThinkingMode || isThinkingChanged) {
-              // If this is a new thinking block or mode changed, add prefix
               isInThinkingMode = true;
               if (remainText.length > 0) {
                 remainText += "\n";
               }
-              remainText += "> " + chunk.content;
+              const quotedContent = lines.map((line) => "> " + line).join("\n");
+              remainText += quotedContent;
             } else {
-              // Handle newlines in thinking content
-              if (chunk.content.includes("\n\n")) {
-                const lines = chunk.content.split("\n\n");
-                remainText += lines.join("\n> \n> ");
-              } else {
-                remainText += chunk.content;
+              // 连续的思考块：直接拼接第一行，其它行添加 '> ' 前缀
+              remainText += lines[0];
+              if (lines.length > 1) {
+                const rest = lines
+                  .slice(1)
+                  .map((line) => "> " + line)
+                  .join("\n");
+                remainText += "\n" + rest;
               }
+            }
+            // 如果当前 chunk 内包含了结束标签，结束思考模式
+            if (tempAfterPart) {
+              isInThinkingMode = false;
+              lastIsThinking = false;
+              // 追加后续普通文本部分，并换为普通模式输出（不添加 '> ' 前缀）
+              remainText += "\n\n" + tempAfterPart;
             }
           } else {
             // If in normal mode

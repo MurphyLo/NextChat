@@ -1428,11 +1428,11 @@ function _Chat() {
       //copiedHello.content = Locale.Error.Unauthorized;
       const currentHostname = window.location.hostname; // 获取当前域名
       console.log("currentHostname is", currentHostname);
-      if (currentHostname.startsWith("chat")) {
-        copiedHello.content = Locale.Error.Unauthorized;
-      } else {
+      if (currentHostname.startsWith("free")) {
         copiedHello.content =
           "如果你从 [登录页](https://ai.smartmonk.biz) 跳转至本页面并看到本提示，请刷新页面后即可开始对话。否则请重新从 [登录页](https://ai.smartmonk.biz) 跳转访问本页面。";
+      } else {
+        copiedHello.content = Locale.Error.Unauthorized;
       }
     }
     context.push(copiedHello);

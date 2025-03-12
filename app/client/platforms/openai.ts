@@ -443,7 +443,15 @@ export class ChatGPTApi implements LLMApi {
     ]);
 
     if (used.status === 401) {
-      throw new Error(Locale.Error.Unauthorized);
+      const currentHostname = window.location.hostname; // 获取当前域名
+      console.log("currentHostname is", currentHostname);
+      if (currentHostname.startsWith("chat")) {
+        throw new Error(Locale.Error.Unauthorized);
+      } else {
+        throw new Error(
+          "如果你从 [登录页](https://ai.smartmonk.biz) 跳转至本页面并看到本提示，请刷新页面后即可开始对话。否则请重新从 [登录页](https://ai.smartmonk.biz) 跳转访问本页面。",
+        );
+      }
     }
 
     if (!used.ok || !subs.ok) {
